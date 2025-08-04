@@ -7,6 +7,8 @@ import re
 from sumy.parsers.plaintext import PlaintextParser
 from sumy.nlp.tokenizers import Tokenizer
 from sumy.summarizers.text_rank import TextRankSummarizer
+import nltk
+nltk.data.path.append('./nltk_data')
 
 app = Flask(__name__)
 
