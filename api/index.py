@@ -55,5 +55,6 @@ def summarize_from_url():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-if __name__ == '__main__':
-    app.run(debug=True, port=5000)
+# Vercel handler
+def handler(request, response):
+    return app(request.scope, request.receive, request.send)
