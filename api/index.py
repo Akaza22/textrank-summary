@@ -10,15 +10,15 @@ from sumy.summarizers.text_rank import TextRankSummarizer
 
 app = Flask(__name__)
 
-# 🧼 Text cleaner agar input ke TextRank lebih bersih
+# Text cleaner
 def clean_text(text: str) -> str:
-    text = re.sub(r'\s+', ' ', text)                      # gabungkan spasi berlebih
-    text = re.sub(r'\[[0-9]+\]', '', text)                # hilangkan referensi seperti [1]
-    text = re.sub(r'(?<=\w)- (?=\w)', '', text)           # gabungkan kata yang di-break dengan tanda minus
-    text = re.sub(r'\n+', '\n', text)                     # ganti banyak newline jadi satu
+    text = re.sub(r'\s+', ' ', text)
+    text = re.sub(r'\[[0-9]+\]', '', text)
+    text = re.sub(r'(?<=\w)- (?=\w)', '', text)
+    text = re.sub(r'\n+', '\n', text)
     return text.strip()
 
-# 🧠 Ringkasan pakai TextRank
+# TextRank
 def summarize_text_textrank(text, num_sentences=5):
     parser = PlaintextParser.from_string(text, Tokenizer("english"))
     summarizer = TextRankSummarizer()
@@ -35,14 +35,11 @@ def summarize_from_url():
         return jsonify({'error': 'Missing URL'}), 400
 
     try:
-        # Ambil PDF dari URL Cloudinary
         response = requests.get(url)
         if response.status_code != 200:
             return jsonify({'error': 'Failed to fetch PDF'}), 400
 
         pdf_file = BytesIO(response.content)
-
-        # 🧾 Ekstraksi teks full dengan pdfminer
         raw_text = extract_text(pdf_file)
         cleaned_text = clean_text(raw_text)
 
@@ -55,6 +52,6 @@ def summarize_from_url():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-# Vercel handler
-def handler(request, response):
-    return app(request.scope, request.receive, request.send)
+# Ini yang dibutuhkan Vercel (handler WSGI)
+# Flask will be treated as WSGI app
+app = app
