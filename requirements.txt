@@ -1,5 +1,4 @@
-Flask
-sumy
+flask
 requests
-nltk
 pdfminer.six
+summa

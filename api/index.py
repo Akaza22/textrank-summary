@@ -2,13 +2,8 @@ from flask import Flask, request, jsonify
 import requests
 from io import BytesIO
 from pdfminer.high_level import extract_text
+from summa.summarizer import summarize
 import re
-
-from sumy.parsers.plaintext import PlaintextParser
-from sumy.nlp.tokenizers import Tokenizer
-from sumy.summarizers.text_rank import TextRankSummarizer
-import nltk
-nltk.data.path.append('./nltk_data')
 
 app = Flask(__name__)
 
@@ -20,18 +15,11 @@ def clean_text(text: str) -> str:
     text = re.sub(r'\n+', '\n', text)
     return text.strip()
 
-# TextRank
-def summarize_text_textrank(text, num_sentences=5):
-    parser = PlaintextParser.from_string(text, Tokenizer("english"))
-    summarizer = TextRankSummarizer()
-    summary = summarizer(parser.document, num_sentences)
-    return " ".join(str(sentence) for sentence in summary)
-
 @app.route('/summarize-url', methods=['POST'])
 def summarize_from_url():
     data = request.get_json()
     url = data.get('url')
-    num_sentences = data.get('sentences', 5)
+    ratio = float(data.get('ratio', 0.1))  # default: ringkas jadi 10%
 
     if not url:
         return jsonify({'error': 'Missing URL'}), 400
@@ -48,12 +36,11 @@ def summarize_from_url():
         if not cleaned_text.strip():
             return jsonify({'error': 'No meaningful text found in PDF'}), 400
 
-        summary = summarize_text_textrank(cleaned_text, num_sentences)
+        summary = summarize(cleaned_text, ratio=ratio)
         return jsonify({'summary': summary})
 
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-# Ini yang dibutuhkan Vercel (handler WSGI)
-# Flask will be treated as WSGI app
+# WSGI app untuk Vercel
 app = app
